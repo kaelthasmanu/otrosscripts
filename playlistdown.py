@@ -1,22 +1,19 @@
 from pytube import Playlist
 from pytube import *
 
-urls = []
 playlist = Playlist('https://www.youtube.com/playlist?list=PLyvsggKtwbLX06iMtXnRGX5lyjiiMaT2y')
 print('Number of videos in playlist: %s' % len(playlist.video_urls))
 for video_url in playlist.video_urls:
     print(video_url)
-    urls.append(video_url)
-    for url in urls:
-        my_video = YouTube(url)
+    my_video = YouTube(video_url)
 
-        print("*****************DOWNLOAD VID*************")
-        print(my_video.title)
+    print("*****************DOWNLOAD VID*************")
+    print(my_video.title)
 
-        my_video = my_video.streams.get_highest_resolution()
-        path = "E:\cursos"
-        my_video.download(path)
-        print("VIDEO DOWNLOAD DONNNNE")
+    my_video = my_video.streams.get_highest_resolution()
+    path = "E:\cursos"
+    #my_video.download(path)
+    print("VIDEO DOWNLOAD DONNNNE")
         
 '''
 def parse_args():
