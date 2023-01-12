@@ -1,4 +1,5 @@
 from pytube import *
+from multiprocessing import Pool
 
 def progress(streams, chunk: bytes, bytes_remaining: int):
     contentsize = video.filesize
@@ -23,7 +24,8 @@ def downloadVideo(url_video):
 playlist = Playlist('https://www.youtube.com/playlist?list=PLyvsggKtwbLX06iMtXnRGX5lyjiiMaT2y')
 print('Number of videos in playlist: %s' % len(playlist.video_urls))
 for video_url in playlist.video_urls:
-    downloadVideo(video_url)
+    with Pool(2) as p:
+        p.map(downloadVideo(video_url))
 '''
 def parse_args():
     parser = argparse.ArgumentParser(description='YouTube Video/Audio Downloader')
