@@ -1,20 +1,29 @@
-from pytube import Playlist
 from pytube import *
 
-playlist = Playlist('https://www.youtube.com/playlist?list=PLyvsggKtwbLX06iMtXnRGX5lyjiiMaT2y')
-print('Number of videos in playlist: %s' % len(playlist.video_urls))
-for video_url in playlist.video_urls:
+def progress(streams, chunk: bytes, bytes_remaining: int):
+    contentsize = video.filesize
+    size = contentsize - bytes_remaining
+
+    print('\r' + '[Download progress]:[%s%s]%.2f%%;' % (
+    '█' * int(size*20/contentsize), ' '*(20-int(size*20/contentsize)), float(size/contentsize*100)), end='')
+
+def downloadVideo(url_video):
     print(video_url)
-    my_video = YouTube(video_url)
+    my_video = YouTube(video_url,on_progress_callback=progress)
 
     print("*****************DOWNLOAD VID*************")
     print(my_video.title)
 
     my_video = my_video.streams.get_highest_resolution()
     path = "E:\cursos"
-    #my_video.download(path)
+    my_video.download(path)
     print("VIDEO DOWNLOAD DONNNNE")
-        
+
+
+playlist = Playlist('https://www.youtube.com/playlist?list=PLyvsggKtwbLX06iMtXnRGX5lyjiiMaT2y')
+print('Number of videos in playlist: %s' % len(playlist.video_urls))
+for video_url in playlist.video_urls:
+    downloadVideo(video_url)
 '''
 def parse_args():
     parser = argparse.ArgumentParser(description='YouTube Video/Audio Downloader')
