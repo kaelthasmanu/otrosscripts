@@ -1,5 +1,13 @@
 from pytube import *
 from multiprocessing import Pool
+from tkinter import *
+from tkinter import ttk
+
+def get_data():
+   text= entry.get()
+   print(text)
+
+
 
 def progress(streams, chunk: bytes, bytes_remaining: int):
     contentsize = video.filesize
@@ -20,12 +28,32 @@ def downloadVideo(url_video):
     my_video.download(path)
     print("VIDEO DOWNLOAD DONNNNE")
 
-
+'''
 playlist = Playlist('https://www.youtube.com/playlist?list=PLyvsggKtwbLX06iMtXnRGX5lyjiiMaT2y')
 print('Number of videos in playlist: %s' % len(playlist.video_urls))
 for video_url in playlist.video_urls:
-    with Pool(2) as p:
-        p.map(downloadVideo(video_url))
+    downloadVideo(video_url)
+    #with Pool(2) as p:
+        #p.map()
+'''
+
+root = Tk()
+frm = ttk.Frame(root, padding=10)
+root.geometry("600x600")
+frm.grid()
+ttk.Label(frm, text="Introduzca la URL de la lista de video").grid(row=0)
+entry = Entry(frm, width= 42)
+entry.place(relx= .5, rely= .5, anchor= CENTER)
+entry.grid(row=0, column=1)
+ttk.Button(frm, text= "Download", command= get_data).place(relx= .93, rely= .16, anchor= CENTER)
+txt = Text(root, width=60, height=20).place(relx= .50, rely= .40, anchor= CENTER)
+txt.insert(INSERT, "Write Something About Yourself")
+txt.pack(expand= 1, fill=BOTH)
+#ttk.Label(frm, text="Hello World!").grid(column=0, row=0)
+ttk.Button(frm, text="Quit", command=root.destroy).grid(column=2, row=3)
+root.mainloop()
+
+
 '''
 def parse_args():
     parser = argparse.ArgumentParser(description='YouTube Video/Audio Downloader')
