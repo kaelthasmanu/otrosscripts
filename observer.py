@@ -25,10 +25,10 @@ class testdaemon(daemon.Daemon):
                         threads.append(observer)
                 observer.start()
                 try:
-                                while True:
-                                        time.sleep(0.1)
+                    while True:
+                        time.sleep(0.1)
                 except KeyboardInterrupt:
-                        observer.stop()
+                    observer.stop()
                 observer.join()
 
 daemon = testdaemon()
