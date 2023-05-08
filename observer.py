@@ -20,9 +20,9 @@ class testdaemon(daemon.Daemon):
                 observer = Observer()
                 threads=[]
                 for i in range(len(dir)):
-                        event_handler = LoggingEventHandler()
-                        observer.schedule(event_handler, dir[i], recursive=True)
-                        threads.append(observer)
+                    event_handler = LoggingEventHandler()
+                    observer.schedule(event_handler, dir[i], recursive=True)
+                    threads.append(observer)
                 observer.start()
                 try:
                     while True:
