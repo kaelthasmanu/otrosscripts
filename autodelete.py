@@ -21,29 +21,48 @@ Uso:
 import os
 import sys
 import shutil
+import logging
 from datetime import datetime, timedelta
 
 # ─── CONFIGURACION ────────────────────────────────────────────────────────────
 BASE_DIR = "/ruta/a/tus/camaras"   # <-- cambia esto a tu directorio real
 DAYS_TO_KEEP = 20                  # cuantos dias recientes conservar
 DATE_FORMAT = "%Y-%m-%d"           # formato de las carpetas de fecha
+LOG_FILE = "/var/log/autodelete.log"  # fichero de log (ajusta la ruta si es necesario)
 # ──────────────────────────────────────────────────────────────────────────────
+
+def setup_logger():
+    logger = logging.getLogger("autodelete")
+    logger.setLevel(logging.INFO)
+    fmt = logging.Formatter("%(asctime)s  %(levelname)-8s  %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+    # Fichero de log
+    fh = logging.FileHandler(LOG_FILE, encoding="utf-8")
+    fh.setFormatter(fmt)
+    logger.addHandler(fh)
+    # Consola
+    ch = logging.StreamHandler()
+    ch.setFormatter(fmt)
+    logger.addHandler(ch)
+    return logger
 
 def main():
     dry_run = "--dry-run" in sys.argv
+    log = setup_logger()
 
-    if dry_run:
-        print("[MODO SIMULACION] No se eliminara nada.\n")
+    log.info("=" * 60)
+    log.info(f"Inicio de ejecucion  |  modo: {'SIMULACION (dry-run)' if dry_run else 'REAL'}")
+    log.info(f"Directorio base: {BASE_DIR}")
+    log.info(f"Dias a conservar: {DAYS_TO_KEEP}")
 
     if not os.path.isdir(BASE_DIR):
-        print(f"Error: el directorio base no existe: {BASE_DIR}")
+        log.error(f"El directorio base no existe: {BASE_DIR}")
         sys.exit(1)
 
     cutoff_date = datetime.now().date() - timedelta(days=DAYS_TO_KEEP)
-    print(f"Fecha de corte: {cutoff_date}  (se eliminan carpetas anteriores a esta fecha)")
-    print(f"Directorio base: {BASE_DIR}\n")
+    log.info(f"Fecha de corte: {cutoff_date}  (se eliminan carpetas anteriores a esta fecha)")
 
     total_deleted = 0
+    total_errors = 0
     total_size = 0
 
     # Recorrer subcarpetas (camera1, camera2, ...)
@@ -53,7 +72,7 @@ def main():
     ])
 
     if not camera_dirs:
-        print("No se encontraron subcarpetas en el directorio base.")
+        log.warning("No se encontraron subcarpetas en el directorio base.")
         sys.exit(0)
 
     for camera in camera_dirs:
@@ -70,7 +89,6 @@ def main():
             try:
                 folder_date = datetime.strptime(entry, DATE_FORMAT).date()
             except ValueError:
-                # No es una carpeta de fecha, ignorar
                 continue
 
             if folder_date < cutoff_date:
@@ -78,25 +96,29 @@ def main():
             else:
                 to_keep.append(entry)
 
-        print(f"  [{camera}]  conservar: {len(to_keep)} carpetas | eliminar: {len(to_delete)} carpetas")
+        log.info(f"[{camera}]  conservar: {len(to_keep)} | a eliminar: {len(to_delete)}")
 
         for name, path, date in to_delete:
             folder_size = get_dir_size(path)
-            total_size += folder_size
-            total_deleted += 1
             size_str = format_size(folder_size)
             if dry_run:
-                print(f"    [DRY-RUN] Eliminaria: {name}  ({size_str})")
+                log.info(f"  [DRY-RUN] Eliminaria: {camera}/{name}  ({size_str})")
+                total_size += folder_size
+                total_deleted += 1
             else:
                 try:
                     shutil.rmtree(path)
-                    print(f"    Eliminado: {name}  ({size_str})")
+                    log.info(f"  Eliminado: {camera}/{name}  ({size_str})")
+                    total_size += folder_size
+                    total_deleted += 1
                 except Exception as e:
-                    print(f"    ERROR al eliminar {name}: {e}")
+                    log.error(f"  ERROR al eliminar {camera}/{name}: {e}")
+                    total_errors += 1
 
-    print()
     action = "Se eliminarian" if dry_run else "Se eliminaron"
-    print(f"{action} {total_deleted} carpetas  (~{format_size(total_size)} liberados)")
+    log.info(f"{action} {total_deleted} carpetas  |  espacio liberado: ~{format_size(total_size)}  |  errores: {total_errors}")
+    log.info("Fin de ejecucion")
+    log.info("=" * 60)
 
 
 def get_dir_size(path):
